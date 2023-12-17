@@ -1,12 +1,5 @@
 import axios from "axios";
 import { Client } from "fca-utils";
-import { Configuration, OpenAIApi } from "openai";
-
-const config = new Configuration({
-    apiKey: process.env.OPENAI_KEY
-})
-
-const openai = new OpenAIApi(config);
 
 const client = new Client({
     prefix: process.env.PREFIX,
@@ -19,7 +12,7 @@ client.on('ready', (_, bid) => console.log("Logged in as", bid, `[${process.env.
 
 client.on('command', (command) => {
     if (command.name === "ai") {
-        openai.createChatCompletion({
+        axios.post("https://ngoctuanai-gpt4api.hf.space/api/openai/chat/completions", {
             model: "gpt-3.5-turbo",
             max_tokens: 1000,
             n: 1,
@@ -27,6 +20,10 @@ client.on('command', (command) => {
                 role: "user",
                 content: command.commandArgs.join(" ")
             }]
+        }, {
+            headers: {
+                Authorization: "Bearer free"
+            }
         }).then(async res => {
             try {
                 const parsedContent = (await axios.get(`https://xva-api.up.railway.app/api/extractgpt?content=${encodeURIComponent(res.data.choices[0].message.content)}&maxCharacterPerLine=6000`)).data;
